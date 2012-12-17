@@ -4,10 +4,15 @@
 
 int main()
 {
-	Renderer renderer(20, 15);
-	Objects objects(&renderer);
+	cout << "Which map do you want to load? ";
+	string map;
+	getline(cin, map);
 
-	objects.Load("map.txt");
+	Renderer renderer(20, 15);
+	renderer.Line("Level: " + map);
+
+	Objects objects(&renderer);
+	objects.Load(map + ".txt");
 
 	while(1)
 	{

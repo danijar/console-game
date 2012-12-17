@@ -1,6 +1,11 @@
 #pragma once
 #include "include.h"
 
+struct Intpointer
+{
+
+};
+
 class Renderer
 {
 public:
@@ -29,13 +34,12 @@ public:
 	}
 	void Set(int x, int y, char content)
 	{
-		if(x > max_x || y > max_y) return;
+		if(x > max_x-1 || y > max_y-1) return;
 		map[Key(x, y)] = content;
 	}
 	void Set(int i, char content)
 	{
 		if(i > max_x-1 * max_y-1) return;
-		//if(i > max_x * max_y) return;
 		map[i] = content;
 	}
 	char Get(int x, int y)
@@ -43,9 +47,23 @@ public:
 		if(x > max_x || y > max_y) return ' ';
 		return map[Key(x, y)];
 	}
+	void Line(string text)
+	{
+		lines.push_back(make_pair(text, nullptr));
+	}
+	void Line(string text, int *var)
+	{
+		lines.push_back(make_pair(text, var));
+	}
 	void Render()
 	{
-		string out = "";
+		string out = "\n";
+		for(auto i = lines.begin(); i != lines.end(); ++i)
+		{
+			out += ' ' + i->first;
+			if(i->second != nullptr) out += to_string(*i->second);
+			out += '\n';
+		}
 		for(int y = 0; y < max_y; ++y)
 		{
 			out += "\n ";
@@ -64,6 +82,7 @@ private:
 	int max_x, max_y;
 	char *map;
 	char bg;
+	vector<pair<string, int*> > lines;
 	int Key(int x, int y)
 	{
 		return y * max_x + x;

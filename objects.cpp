@@ -5,22 +5,31 @@
 struct Position
 {
 	Position() : x(0), y(0) {}
+	bool operator==(const Position &other) const {
+    	return ((x == other.x) && (y == other.y));
+  	}
 	void Set(int x, int y) { this->x = x; this->y = y; }
 	int x, y;
 };
 
 struct Object
 {
+	Object() : Visual(' '), Collision(false), Moving(false) {}
+	virtual void Update() = 0;
 	Position Pos;
 	char Visual;
-	virtual void Update() = 0;
-	void Boundposition(int x, int y)
+	bool Collision, Moving;
+};
+
+struct Static : public Object
+{
+	Static(int x = 0, int y = 0, char visual = '\xDB')
 	{
-		if(Pos.x < 0)     Pos.x = 0;
-		if(Pos.x > x - 1) Pos.x = x - 1;
-		if(Pos.y < 0)     Pos.y = 0;
-		if(Pos.y > y - 1) Pos.y = y - 1;
+		Visual = visual;
+		Collision = true;
+		Pos.Set(x, y);
 	}
+	void Update() {}
 };
 
 struct Player : public Object
@@ -28,36 +37,27 @@ struct Player : public Object
 	Player(int x = 0, int y = 0)
 	{
 		Visual = 'O';
-		Pos.x = x;
-		Pos.y = y;
+		Collision = true;
+		Moving = true;
+		Pos.Set(x, y);
 	}
 	void Update()
 	{
-		if(GetAsyncKeyState(VK_LEFT) ) Pos.x--;
-		if(GetAsyncKeyState(VK_RIGHT)) Pos.x++;
-		if(GetAsyncKeyState(VK_UP)   ) Pos.y--;
-		if(GetAsyncKeyState(VK_DOWN) ) Pos.y++;
+		if((GetAsyncKeyState(VK_LEFT) ) || (GetAsyncKeyState(0x41))) Pos.x--;
+		if((GetAsyncKeyState(VK_RIGHT)) || (GetAsyncKeyState(0x44))) Pos.x++;
+		if((GetAsyncKeyState(VK_UP)   ) || (GetAsyncKeyState(0x57))) Pos.y--;
+		if((GetAsyncKeyState(VK_DOWN) ) || (GetAsyncKeyState(0x53))) Pos.y++;
 	}
-};
-
-struct Wall : public Object
-{
-	Wall(int x = 0, int y = 0)
-	{
-		Visual = '\xDB';
-		Pos.x = x;
-		Pos.y = y;
-	}
-	void Update() {}
 };
 
 struct Monster : public Object
 {
 	Monster(int x = 0, int y = 0) : dir(true), distance(0)
 	{
-		Visual = '\x84';
-		Pos.x = x;
-		Pos.y = y;
+		Visual = 'X';
+		Collision = true;
+		Moving = true;
+		Pos.Set(x, y);
 	}
 	void Update()
 	{
@@ -71,20 +71,65 @@ private:
 	int distance;
 };
 
+struct Water : public Object
+{
+	Water(int x = 0, int y = 0) : animation(new char[4]), frame(0), slow(5)
+	{
+		Collision = true;
+		Pos.Set(x, y);
+
+		animation[0] = 'W';
+		animation[1] = 'V';
+		animation[2] = '|';
+		animation[3] = 'V';
+	}
+	void Update()
+	{
+		if(frame / slow > 4-1) frame = 0;
+		if(frame % slow == 0) Visual = animation[frame / slow];
+		frame++;
+	};
+	char* animation;
+	int frame;
+	int slow;
+};
+
 class Objects
 {
 public:
-	Objects(Renderer* renderer) : renderer(renderer)
+	Objects(Renderer* renderer) : renderer(renderer), player(new Player(0, 0))
 	{
-		objects.push_back(new Player(0, 0));
+		objects.push_back(player);
 	}
 	void Update()
 	{
 		renderer->Clear();
-		for(vector<Object*>::iterator i = objects.begin(); i != objects.end(); ++i)
+		for(auto i = objects.begin(); i != objects.end(); ++i)
 		{
+			auto pos_old = (*i)->Pos;
+
 			(*i)->Update();
-			(*i)->Boundposition(renderer->X(), renderer->Y());
+
+			if((*i)->Moving)
+			{
+				if((*i)->Pos.x < 0)     			(*i)->Pos.x = 0;
+				if((*i)->Pos.x > renderer->X() - 1) (*i)->Pos.x = renderer->X() - 1;
+				if((*i)->Pos.y < 0)     			(*i)->Pos.y = 0;
+				if((*i)->Pos.y > renderer->Y() - 1) (*i)->Pos.y = renderer->Y() - 1;
+
+				for(auto j = objects.begin(); j != objects.end(); ++j)
+				{
+					if(i == j) continue;
+					if((*j)->Collision)
+					{
+						if((*j)->Pos == (*i)->Pos)
+						{
+							(*i)->Pos = pos_old;
+							break;
+						}
+					}
+				}
+			}
 			renderer->Set((*i)->Pos.x, (*i)->Pos.y, (*i)->Visual);
 		}
 	}
@@ -116,11 +161,26 @@ public:
 			int y = i / max_x;
 			switch(ch)
 			{
-			case '#':
-				objects.push_back(new Wall(x, y));
+			case '1':
+				objects.push_back(new Static(x, y, '\xB0'));
 				break;
-			case 'X':
+			case '2':
+				objects.push_back(new Static(x, y, '\xB1'));
+				break;
+			case '3':
+				objects.push_back(new Static(x, y, '\xB2'));
+				break;
+			case '4':
+				objects.push_back(new Static(x, y, '\xDB'));
+				break;
+			case 'A':
 				objects.push_back(new Monster(x, y));
+				break;
+			case 'W':
+				objects.push_back(new Water(x, y));
+				break;
+			case 'O':
+				player->Pos.Set(x, y);
 				break;
 			}
 			i++;
@@ -128,5 +188,6 @@ public:
 	}
 private:
 	Renderer *renderer;
+	Player *player;
 	vector<Object*> objects;
 };
