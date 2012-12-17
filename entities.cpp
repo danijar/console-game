@@ -58,7 +58,7 @@ private:
 
 struct Player : public Object
 {
-	Player(int x = 0, int y = 0) : Score(0)
+	Player(int x = 0, int y = 0) : score(0)
 	{
 		Visual = '\xAD';
 		Collision = true;
@@ -73,7 +73,17 @@ struct Player : public Object
 		if((GetAsyncKeyState(VK_DOWN) ) || (GetAsyncKeyState(0x53))) Pos.y++;
 	}
 	void Collide() {}
-	int Score;
+	int Score(int add)
+	{
+		score += add;
+		if(score < 0)
+		{
+			score = 0;
+			Erase = true;
+		}
+		return score;
+	}
+	int score;
 };
 
 struct Orb : public Object
@@ -87,7 +97,7 @@ struct Orb : public Object
 	{
 		if(Pos == player->Pos)
 		{
-			player->Score++;
+			player->Score(+1);
 			Erase = true;
 		}
 	}
@@ -122,9 +132,29 @@ private:
 	Player* player;
 };
 
-struct MonsterA : public Object
+struct Monster : public Object
 {
-	MonsterA(int x = 0, int y = 0) : dir(true), distance(0)
+	Monster(int x, int y, Player* player) : player(player)
+	{
+
+	}
+	virtual void Update() = 0;
+	virtual void Collide() = 0;
+	void Attack()
+	{
+		if(Near(Pos, player->Pos))
+		{
+			player->Score(-1);
+			Erase = true;
+		}
+	}
+protected:
+	Player* player;
+};
+
+struct MonsterA : public Monster
+{
+	MonsterA(int x, int y, Player* player) : Monster(x, y, player), dir(true), distance(0)
 	{
 		Visual = '\x98';
 		Collision = true;
@@ -133,6 +163,7 @@ struct MonsterA : public Object
 	}
 	void Update()
 	{
+		Attack();
 		if(distance >  3) dir = false;
 		if(distance < -2) dir = true;
 		distance += dir ? 1 : -1;
@@ -144,9 +175,9 @@ private:
 	int distance;
 };
 
-struct MonsterB : public Object
+struct MonsterB : public Monster
 {
-	MonsterB(int x = 0, int y = 0) : dir(1)
+	MonsterB(int x, int y, Player* player) : Monster(x, y, player), dir(1)
 	{
 		Visual = '\x98';
 		Collision = true;
@@ -155,6 +186,7 @@ struct MonsterB : public Object
 	}
 	void Update()
 	{
+		Attack();
 		if     (dir == 1) Pos.y--;
 		else if(dir == 2) Pos.x++;
 		else if(dir == 3) Pos.y++;
@@ -169,9 +201,9 @@ private:
 	int dir;
 };
 
-struct MonsterC : public Object
+struct MonsterC : public Monster
 {
-	MonsterC(int x, int y, Player* player) : player(player), dir(true)
+	MonsterC(int x, int y, Player* player) : Monster(x, y, player), dir(true)
 	{
 		Visual = '\x98';
 		Collision = true;
@@ -180,6 +212,7 @@ struct MonsterC : public Object
 	}
 	void Update()
 	{
+		Attack();
 		if(Near(Pos, player->Pos, 9))
 		{
 			if(dir)
@@ -197,6 +230,5 @@ struct MonsterC : public Object
 	}
 	void Collide() {}
 private:
-	Player* player;
 	bool dir;
 };

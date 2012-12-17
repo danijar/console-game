@@ -53,31 +53,33 @@ public:
 	}
 	void Render()
 	{
-		string out = "";
-		out += '\n';
-		for(auto i = lines.begin(); i != lines.end(); ++i)
-		{
-			out += ' ' + i->first;
-			if(i->second != nullptr) out += to_string(*i->second);
-			out += '\n';
-		}
-		out += '\n';
-		out += ' '; for(int n = -1; n < max_x + 1; ++n) out += bd;
+		string text = Header();
+		text += Line();
 		for(int y = 0; y < max_y; ++y)
 		{
-			out += "\n ";
-			out += bd;
+			text += "\n ";
+			text += bd;
 			for(int x = 0; x < max_x; ++x)
 			{
-				//out += ' ';
-				out += map[Key(x, y)];
+				//text += ' ';
+				text += map[Key(x, y)];
 			}
-			out += bd;
+			text += bd;
 		}
-		out += '\n';
-		out += ' '; for(int n = -1; n < max_x + 1; ++n) out += bd;
-		system("cls");
-		cout << out;
+		text += Line();
+		Show(text);
+	}
+	void Message(string message)
+	{
+		string text = Header();
+		text += Line();
+		text += "\n\n  ";
+		text += message;
+		text += "\n";
+		text += Line();
+		
+		Show(text);
+		cin.get();
 	}
 	int X() { return max_x; }
 	int Y() { return max_y; }
@@ -86,6 +88,29 @@ private:
 	char *map;
 	char bg, bd;
 	vector<pair<string, int*> > lines;
+	string Header()
+	{
+		string text = "";
+		text += '\n';
+		for(auto i = lines.begin(); i != lines.end(); ++i)
+		{
+			text += ' ' + i->first;
+			if(i->second != nullptr) text += to_string(*i->second);
+			text += '\n';
+		}
+		return text;
+	}
+	void Show(string text)
+	{
+		system("cls");
+		cout << text;
+	}
+	string Line()
+	{
+		string text = "\n ";
+		for(int n = -1; n < max_x + 1; ++n) text += bd;
+		return text;
+	}
 	int Key(int x, int y)
 	{
 		return y * max_x + x;

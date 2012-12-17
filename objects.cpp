@@ -28,14 +28,22 @@ struct Object
 class Objects
 {
 public:
-	Objects(Renderer* renderer) : renderer(renderer), player(new Player(0, 0)), objects_size(0)
+	Objects(Renderer* renderer) : renderer(renderer), player(new Player(0, 0)), objects_size(0), wait_end(0)
 	{
 		objects.push_back(player);
 		renderer->Line("Objects: ", &objects_size);
-		renderer->Line("Score: ", &player->Score);
+		renderer->Line("Score: ", &player->score);
 	}
-	void Update()
+	bool Update()
 	{
+		if(player->Erase || wait_end > 0) wait_end++;
+		if(wait_end > 10)
+		{
+
+			renderer->Message("Player is dead.\n  Press enter to restart.");
+			return false;
+		}
+
 		renderer->Clear();
 		objects_size = objects.size();
 		for(auto i = objects.rbegin(); i != objects.rend(); ++i)
@@ -67,8 +75,9 @@ public:
 					}
 				}
 			}
-			renderer->Set((*i)->Pos.x, (*i)->Pos.y, (*i)->Visual);
+			if((*i)->Visual != ' ') renderer->Set((*i)->Pos.x, (*i)->Pos.y, (*i)->Visual);
 		}
+		return true;
 	}
 	void Load(string Path)
 	{
@@ -108,10 +117,10 @@ public:
 				objects.push_back(new Static(x, y, '\xDB'));
 				break;
 			case 'A':
-				objects.push_back(new MonsterA(x, y));
+				objects.push_back(new MonsterA(x, y, player));
 				break;
 			case 'B':
-				objects.push_back(new MonsterB(x, y));
+				objects.push_back(new MonsterB(x, y, player));
 				break;
 			case 'C':
 				objects.push_back(new MonsterC(x, y, player));
@@ -137,4 +146,5 @@ private:
 	Player *player;
 	vector<Object*> objects;
 	int objects_size;
+	int wait_end;
 };

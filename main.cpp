@@ -8,21 +8,26 @@ int main()
 	string map;
 	getline(cin, map);
 
-	Renderer renderer(20, 15);
-	renderer.Line("Level: " + map);
-
-	Objects objects(&renderer);
-	objects.Load(map + ".txt");
-
-	while(1)
+	bool open = true;
+	while(open)
 	{
-		// note: virtual key codes at http://bit.ly/zHw8YZ
-		if(GetAsyncKeyState(VK_ESCAPE)) break;
+		Renderer renderer(20, 15);
+		renderer.Line("Level: " + map);
 
-		objects.Update();
+		Objects objects(&renderer);
+		objects.Load(map + ".txt");
 
-		renderer.Render();
-		Sleep(150);
-		// cin.get();
+		bool running = true;
+		while(running)
+		{
+			// note: virtual key codes at http://bit.ly/zHw8YZ
+			if(GetAsyncKeyState(VK_ESCAPE)) { open = false; break; }
+
+			running = objects.Update();
+
+			renderer.Render();
+			Sleep(150);
+			// cin.get(); // for screenshots
+		}
 	}
 }

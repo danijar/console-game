@@ -41,7 +41,8 @@ The following letters are supported.
 - `c`: Coin raising Score.
 - `A`: Monster, walks left and right.
 - `B`: Monster, changes direction on collision.
-- Any other letter: Space.
+- `O`: Change player's starting point from 0, 0.
+- Any other letter: Free space.
 
 Try it out!
 -----------
