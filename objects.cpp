@@ -16,84 +16,13 @@ struct Object
 {
 	Object() : Visual(' '), Collision(false), Moving(false) {}
 	virtual void Update() = 0;
+	virtual void Collide() {}
 	Position Pos;
 	char Visual;
 	bool Collision, Moving;
 };
 
-struct Static : public Object
-{
-	Static(int x, int y, char visual = '\xDB')
-	{
-		Visual = visual;
-		Collision = true;
-		Pos.Set(x, y);
-	}
-	void Update() {}
-};
-
-struct Animation : public Object
-{
-	Animation(int x, int y, initializer_list<char> chars, int speed = 5) : speed(speed), frame(1), counter(0)
-	{
-		Collision = true;
-		Pos.Set(x, y);
-		for(auto i = chars.begin(); i != chars.end(); ++i) frames.push_back(*i);
-		Visual = frames[0];
-	}
-	void Update()
-	{
-		if(counter++ > speed)
-		{
-			counter = 0;
-			if(frame > frames.size()-1) frame = 0;
-			Visual = frames[frame++];
-		}
-	};
-private:
-	vector<char> frames;
-	const unsigned int speed;
-	unsigned int frame, counter;
-};
-
-struct Player : public Object
-{
-	Player(int x = 0, int y = 0)
-	{
-		Visual = 'O';
-		Collision = true;
-		Moving = true;
-		Pos.Set(x, y);
-	}
-	void Update()
-	{
-		if((GetAsyncKeyState(VK_LEFT) ) || (GetAsyncKeyState(0x41))) Pos.x--;
-		if((GetAsyncKeyState(VK_RIGHT)) || (GetAsyncKeyState(0x44))) Pos.x++;
-		if((GetAsyncKeyState(VK_UP)   ) || (GetAsyncKeyState(0x57))) Pos.y--;
-		if((GetAsyncKeyState(VK_DOWN) ) || (GetAsyncKeyState(0x53))) Pos.y++;
-	}
-};
-
-struct Monster : public Object
-{
-	Monster(int x = 0, int y = 0) : dir(true), distance(0)
-	{
-		Visual = 'X';
-		Collision = true;
-		Moving = true;
-		Pos.Set(x, y);
-	}
-	void Update()
-	{
-		if(distance >  3) dir = false;
-		if(distance < -2) dir = true;
-		distance += dir ? 1 : -1;
-		Pos.x += dir ? 1 : -1;
-	}
-private:
-	bool dir;
-	int distance;
-};
+#include "entities.cpp"
 
 class Objects
 {
@@ -113,10 +42,10 @@ public:
 
 			if((*i)->Moving)
 			{
-				if((*i)->Pos.x < 0)     			(*i)->Pos.x = 0;
-				if((*i)->Pos.x > renderer->X() - 1) (*i)->Pos.x = renderer->X() - 1;
-				if((*i)->Pos.y < 0)     			(*i)->Pos.y = 0;
-				if((*i)->Pos.y > renderer->Y() - 1) (*i)->Pos.y = renderer->Y() - 1;
+				if((*i)->Pos.x < 0)     			{ (*i)->Pos.x = 0;				   (*i)->Collide(); }
+				if((*i)->Pos.x > renderer->X() - 1) { (*i)->Pos.x = renderer->X() - 1; (*i)->Collide(); }
+				if((*i)->Pos.y < 0)     			{ (*i)->Pos.y = 0;				   (*i)->Collide(); }
+				if((*i)->Pos.y > renderer->Y() - 1) { (*i)->Pos.y = renderer->Y() - 1; (*i)->Collide(); }
 
 				for(auto j = objects.begin(); j != objects.end(); ++j)
 				{
@@ -126,6 +55,7 @@ public:
 						if((*j)->Pos == (*i)->Pos)
 						{
 							(*i)->Pos = pos_old;
+							(*i)->Collide();
 							break;
 						}
 					}
@@ -175,7 +105,10 @@ public:
 				objects.push_back(new Static(x, y, '\xDB'));
 				break;
 			case 'A':
-				objects.push_back(new Monster(x, y));
+				objects.push_back(new MonsterA(x, y));
+				break;
+			case 'B':
+				objects.push_back(new MonsterB(x, y));
 				break;
 			case 'W':
 				objects.push_back(new Animation(x, y, {'\xAF','\xAE'} ));
