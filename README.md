@@ -6,7 +6,7 @@ Terminal
 
 The games runs in the windows command promt.
 
-![Screenshot](https://github.com/ComputerGame/ConsoleGame/blob/master/screenshot.gif)
+![Screenshot](https://raw.github.com/ComputerGame/ConsoleGame/master/screenshot.gif)
 
 Map
 ---
