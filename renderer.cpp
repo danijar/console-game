@@ -9,7 +9,7 @@ struct Intpointer
 class Renderer
 {
 public:
-	Renderer(int x, int y, char background = '\xFA') : max_x(x), max_y(y), map(new char[x * y]), bg(background)
+	Renderer(int x, int y, char background = ' ', char border = '\xFA') : max_x(x), max_y(y), map(new char[x * y]), bg(background), bd(border)
 	{
 		Clear();
 	}
@@ -19,11 +19,7 @@ public:
 	}
 	void Clear()
 	{
-		Clear(bg);
-	}
-	void Clear(char background)
-	{
-		memset(map, background, max_x * max_y);
+		memset(map, bg, max_x * max_y);
 	}
 	void Clear(int x, int y)
 	{
@@ -57,22 +53,29 @@ public:
 	}
 	void Render()
 	{
-		string out = "\n";
+		string out = "";
+		out += '\n';
 		for(auto i = lines.begin(); i != lines.end(); ++i)
 		{
 			out += ' ' + i->first;
 			if(i->second != nullptr) out += to_string(*i->second);
 			out += '\n';
 		}
+		out += '\n';
+		out += ' '; for(int n = -1; n < max_x + 1; ++n) out += bd;
 		for(int y = 0; y < max_y; ++y)
 		{
 			out += "\n ";
+			out += bd;
 			for(int x = 0; x < max_x; ++x)
 			{
 				//out += ' ';
 				out += map[Key(x, y)];
 			}
+			out += bd;
 		}
+		out += '\n';
+		out += ' '; for(int n = -1; n < max_x + 1; ++n) out += bd;
 		system("cls");
 		cout << out;
 	}
@@ -81,7 +84,7 @@ public:
 private:
 	int max_x, max_y;
 	char *map;
-	char bg;
+	char bg, bd;
 	vector<pair<string, int*> > lines;
 	int Key(int x, int y)
 	{

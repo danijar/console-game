@@ -23,13 +23,37 @@ struct Object
 
 struct Static : public Object
 {
-	Static(int x = 0, int y = 0, char visual = '\xDB')
+	Static(int x, int y, char visual = '\xDB')
 	{
 		Visual = visual;
 		Collision = true;
 		Pos.Set(x, y);
 	}
 	void Update() {}
+};
+
+struct Animation : public Object
+{
+	Animation(int x, int y, initializer_list<char> chars, int speed = 5) : speed(speed), frame(1), counter(0)
+	{
+		Collision = true;
+		Pos.Set(x, y);
+		for(auto i = chars.begin(); i != chars.end(); ++i) frames.push_back(*i);
+		Visual = frames[0];
+	}
+	void Update()
+	{
+		if(counter++ > speed)
+		{
+			counter = 0;
+			if(frame > frames.size()-1) frame = 0;
+			Visual = frames[frame++];
+		}
+	};
+private:
+	vector<char> frames;
+	const unsigned int speed;
+	unsigned int frame, counter;
 };
 
 struct Player : public Object
@@ -69,29 +93,6 @@ struct Monster : public Object
 private:
 	bool dir;
 	int distance;
-};
-
-struct Water : public Object
-{
-	Water(int x = 0, int y = 0) : animation(new char[4]), frame(0), slow(5)
-	{
-		Collision = true;
-		Pos.Set(x, y);
-
-		animation[0] = 'W';
-		animation[1] = 'V';
-		animation[2] = '|';
-		animation[3] = 'V';
-	}
-	void Update()
-	{
-		if(frame / slow > 4-1) frame = 0;
-		if(frame % slow == 0) Visual = animation[frame / slow];
-		frame++;
-	};
-	char* animation;
-	int frame;
-	int slow;
 };
 
 class Objects
@@ -177,7 +178,7 @@ public:
 				objects.push_back(new Monster(x, y));
 				break;
 			case 'W':
-				objects.push_back(new Water(x, y));
+				objects.push_back(new Animation(x, y, {'\xAF','\xAE'} ));
 				break;
 			case 'O':
 				player->Pos.Set(x, y);
