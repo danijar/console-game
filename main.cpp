@@ -23,5 +23,6 @@ int main()
 
 		renderer.Render();
 		Sleep(100);
+		// cin.get();
 	}
 }
