@@ -73,7 +73,7 @@ struct Player : public Object
 		if((GetAsyncKeyState(VK_DOWN) ) || (GetAsyncKeyState(0x53))) Pos.y++;
 	}
 	void Collide() {}
-	int Score(int add)
+	int Score(int add = 0)
 	{
 		score += add;
 		if(score < 0)
@@ -88,7 +88,7 @@ struct Player : public Object
 
 struct Orb : public Object
 {
-	Orb(int x, int y, Player* player) : player(player)
+	Orb(int x, int y, Player* player, int *orbs_left) : player(player), orbs_left(orbs_left)
 	{
 		Visual = '\xB8';
 		Pos.Set(x, y);
@@ -98,12 +98,14 @@ struct Orb : public Object
 		if(Pos == player->Pos)
 		{
 			player->Score(+1);
+			*orbs_left = *orbs_left - 1;
 			Erase = true;
 		}
 	}
 	void Collide() {}
 private:
-	Player* player;
+	Player *player;
+	int *orbs_left;
 };
 
 struct Door : public Object
@@ -129,7 +131,7 @@ struct Door : public Object
 	}
 	void Collide() {}
 private:
-	Player* player;
+	Player *player;
 };
 
 struct Monster : public Object
@@ -149,7 +151,7 @@ struct Monster : public Object
 		}
 	}
 protected:
-	Player* player;
+	Player *player;
 };
 
 struct MonsterA : public Monster
@@ -213,7 +215,7 @@ struct MonsterC : public Monster
 	void Update()
 	{
 		Attack();
-		if(Near(Pos, player->Pos, 9))
+		if(Near(Pos, player->Pos, 8))
 		{
 			if(dir)
 			{

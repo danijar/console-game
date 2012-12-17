@@ -28,22 +28,25 @@ struct Object
 class Objects
 {
 public:
-	Objects(Renderer* renderer) : renderer(renderer), player(new Player(0, 0)), objects_size(0), wait_end(0)
+	Objects(Renderer* renderer) : renderer(renderer), player(new Player(0, 0)), objects_size(0), orbs_max(0), orbs_left(0)
 	{
 		objects.push_back(player);
 		renderer->Line("Objects: ", &objects_size);
+		renderer->Line("Orbs left: ", &orbs_left);
 		renderer->Line("Score: ", &player->score);
 	}
 	bool Update()
 	{
-		if(player->Erase || wait_end > 0) wait_end++;
-		if(wait_end > 10)
+		if(player->Erase)
 		{
-
 			renderer->Message("Player is dead.\n  Press enter to restart.");
 			return false;
 		}
-
+		else if (orbs_left <= 0 && orbs_max > 0)
+		{
+			renderer->Message("All " + to_string(orbs_max) + " orbs collected. Your score is " + to_string(player->Score()) + ".\n  Press enter to restart.");
+			return false;
+		}
 		renderer->Clear();
 		objects_size = objects.size();
 		for(auto i = objects.rbegin(); i != objects.rend(); ++i)
@@ -78,6 +81,13 @@ public:
 			if((*i)->Visual != ' ') renderer->Set((*i)->Pos.x, (*i)->Pos.y, (*i)->Visual);
 		}
 		return true;
+	}
+	void AddOrb(int x, int y)
+	{
+		orbs_left++;
+		orbs_max++;
+		objects.push_back(new Orb(x, y, player, &orbs_left));
+		return;
 	}
 	void Load(string Path)
 	{
@@ -129,7 +139,7 @@ public:
 				objects.push_back(new Animation(x, y, {'W','V'} ));
 				break;
 			case 'c':
-				objects.push_back(new Orb(x, y, player));
+				AddOrb(x, y);
 				break;
 			case '=':
 				objects.push_back(new Door(x, y, player));
@@ -146,5 +156,5 @@ private:
 	Player *player;
 	vector<Object*> objects;
 	int objects_size;
-	int wait_end;
+	int orbs_max, orbs_left;
 };

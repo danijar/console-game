@@ -77,8 +77,8 @@ public:
 		text += message;
 		text += "\n";
 		text += Line();
-		
 		Show(text);
+		cin.ignore();
 		cin.get();
 	}
 	int X() { return max_x; }
