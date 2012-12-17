@@ -1,5 +1,24 @@
 #pragma once
 
+bool Near(int one, int two, int distance = 1)
+{
+	bool result = false;
+	for(int i = -distance; i <= distance; ++i)
+	{
+		if(one == two + i)
+		{
+			result = true;
+			break;
+		}
+	}
+	return result;
+}
+bool Near(Position one, Position two, int distance = 1)
+{
+	return (Near(one.x, two.x, distance) && Near(one.y, two.y, distance));
+}
+
+
 struct Static : public Object
 {
 	Static(int x, int y, char visual = '\xDB')
@@ -41,7 +60,7 @@ struct Player : public Object
 {
 	Player(int x = 0, int y = 0) : Score(0)
 	{
-		Visual = 'O';
+		Visual = '\xAD';
 		Collision = true;
 		Moving = true;
 		Pos.Set(x, y);
@@ -101,30 +120,13 @@ struct Door : public Object
 	void Collide() {}
 private:
 	Player* player;
-	bool Near(Position one, Position two, int distance = 1)
-	{
-		return (Near(one.x, two.x, distance) && Near(one.y, two.y, distance));
-	}
-	bool Near(int one, int two, int distance = 1)
-	{
-		bool result = false;
-		for(int i = -distance; i <= distance; ++i)
-		{
-			if(one == two + i)
-			{
-				result = true;
-				break;
-			}
-		}
-		return result;
-	}
 };
 
 struct MonsterA : public Object
 {
 	MonsterA(int x = 0, int y = 0) : dir(true), distance(0)
 	{
-		Visual = 'A';
+		Visual = '\x98';
 		Collision = true;
 		Moving = true;
 		Pos.Set(x, y);
@@ -146,7 +148,7 @@ struct MonsterB : public Object
 {
 	MonsterB(int x = 0, int y = 0) : dir(1)
 	{
-		Visual = 'B';
+		Visual = '\x98';
 		Collision = true;
 		Moving = true;
 		Pos.Set(x, y);
@@ -165,4 +167,36 @@ struct MonsterB : public Object
 	}
 private:
 	int dir;
+};
+
+struct MonsterC : public Object
+{
+	MonsterC(int x, int y, Player* player) : player(player), dir(true)
+	{
+		Visual = '\x98';
+		Collision = true;
+		Moving = true;
+		Pos.Set(x, y);
+	}
+	void Update()
+	{
+		if(Near(Pos, player->Pos, 9))
+		{
+			if(dir)
+			{
+				if(Pos.x < player->Pos.x) Pos.x++;
+				else if(Pos.x > player->Pos.x) Pos.x--;
+			}
+			else
+			{
+				if(Pos.y < player->Pos.y) Pos.y++;
+				else if(Pos.y > player->Pos.y) Pos.y--;
+			}
+		}
+		dir = !dir;
+	}
+	void Collide() {}
+private:
+	Player* player;
+	bool dir;
 };

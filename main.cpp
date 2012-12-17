@@ -22,7 +22,7 @@ int main()
 		objects.Update();
 
 		renderer.Render();
-		Sleep(100);
+		Sleep(150);
 		// cin.get();
 	}
 }

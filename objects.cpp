@@ -113,8 +113,11 @@ public:
 			case 'B':
 				objects.push_back(new MonsterB(x, y));
 				break;
+			case 'C':
+				objects.push_back(new MonsterC(x, y, player));
+				break;
 			case 'W':
-				objects.push_back(new Animation(x, y, {'\xAF','\xAE'} ));
+				objects.push_back(new Animation(x, y, {'W','V'} ));
 				break;
 			case 'c':
 				objects.push_back(new Orb(x, y, player));
