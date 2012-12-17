@@ -119,6 +119,9 @@ public:
 			case 'c':
 				objects.push_back(new Orb(x, y, player));
 				break;
+			case '=':
+				objects.push_back(new Door(x, y, player));
+				break;
 			case 'O':
 				player->Pos.Set(x, y);
 				break;
