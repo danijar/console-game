@@ -14,12 +14,13 @@ struct Position
 
 struct Object
 {
-	Object() : Visual(' '), Collision(false), Moving(false) {}
+	Object() : Visual(' '), Collision(false), Moving(false), Erase(false) {}
 	virtual void Update() = 0;
 	virtual void Collide() {}
 	Position Pos;
 	char Visual;
 	bool Collision, Moving;
+	bool Erase;
 };
 
 #include "entities.cpp"
@@ -27,27 +28,32 @@ struct Object
 class Objects
 {
 public:
-	Objects(Renderer* renderer) : renderer(renderer), player(new Player(0, 0))
+	Objects(Renderer* renderer) : renderer(renderer), player(new Player(0, 0)), objects_size(0)
 	{
 		objects.push_back(player);
+		renderer->Line("Objects: ", &objects_size);
+		renderer->Line("Score: ", &player->Score);
 	}
 	void Update()
 	{
 		renderer->Clear();
-		for(auto i = objects.begin(); i != objects.end(); ++i)
+		objects_size = objects.size();
+		for(auto i = objects.rbegin(); i != objects.rend(); ++i)
 		{
+			if((*i)->Erase)
+			{
+				objects.erase(--i.base());
+				continue;
+			}
 			auto pos_old = (*i)->Pos;
-
 			(*i)->Update();
-
 			if((*i)->Moving)
 			{
 				if((*i)->Pos.x < 0)     			{ (*i)->Pos.x = 0;				   (*i)->Collide(); }
 				if((*i)->Pos.x > renderer->X() - 1) { (*i)->Pos.x = renderer->X() - 1; (*i)->Collide(); }
 				if((*i)->Pos.y < 0)     			{ (*i)->Pos.y = 0;				   (*i)->Collide(); }
 				if((*i)->Pos.y > renderer->Y() - 1) { (*i)->Pos.y = renderer->Y() - 1; (*i)->Collide(); }
-
-				for(auto j = objects.begin(); j != objects.end(); ++j)
+				for(auto j = objects.rbegin(); j != objects.rend(); ++j)
 				{
 					if(i == j) continue;
 					if((*j)->Collision)
@@ -93,15 +99,12 @@ public:
 			switch(ch)
 			{
 			case '1':
-				objects.push_back(new Static(x, y, '\xB0'));
-				break;
-			case '2':
 				objects.push_back(new Static(x, y, '\xB1'));
 				break;
-			case '3':
+			case '2':
 				objects.push_back(new Static(x, y, '\xB2'));
 				break;
-			case '4':
+			case '3':
 				objects.push_back(new Static(x, y, '\xDB'));
 				break;
 			case 'A':
@@ -112,6 +115,9 @@ public:
 				break;
 			case 'W':
 				objects.push_back(new Animation(x, y, {'\xAF','\xAE'} ));
+				break;
+			case 'c':
+				objects.push_back(new Orb(x, y, player));
 				break;
 			case 'O':
 				player->Pos.Set(x, y);
@@ -124,4 +130,5 @@ private:
 	Renderer *renderer;
 	Player *player;
 	vector<Object*> objects;
+	int objects_size;
 };

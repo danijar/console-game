@@ -39,7 +39,7 @@ private:
 
 struct Player : public Object
 {
-	Player(int x = 0, int y = 0)
+	Player(int x = 0, int y = 0) : Score(0)
 	{
 		Visual = 'O';
 		Collision = true;
@@ -54,6 +54,30 @@ struct Player : public Object
 		if((GetAsyncKeyState(VK_DOWN) ) || (GetAsyncKeyState(0x53))) Pos.y++;
 	}
 	void Collide() {}
+	int Score;
+};
+
+struct Orb : public Object
+{
+	Orb(int x, int y, Player* player) : player(player)
+	{
+		Visual = 'c';
+		Pos.Set(x, y);
+	}
+	void Update()
+	{
+		if(Pos == player->Pos)
+		{
+			player->Score++;
+			Erase = true;
+		}
+	}
+	void Collide()
+	{
+
+	}
+private:
+	Player* player;
 };
 
 struct MonsterA : public Object
